@@ -1,2 +1,3 @@
 ---
 gnome_user: "{{ ansible_user_id }}"
+gnome_shell_restart_allowed: true
