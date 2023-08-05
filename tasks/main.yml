@@ -68,6 +68,10 @@
 - name: Create a list of current enabled extensions
   become_user: "{{ gnome_user }}"
   ansible.builtin.shell: gnome-extensions list --enabled > /tmp/before.txt
+  register: r_gnome_extension_list
+  failed_when:
+    - r_gnome_extension_list is not succeeded
+    - r_gnome_extension_list.rc != 2
 
 - name: Load Gnome extension information
   include_tasks: get_extension_info.yml
@@ -145,6 +149,10 @@
   become_user: "{{ gnome_user }}"
   ansible.builtin.shell: gnome-extensions list --enabled > /tmp/after.txt
   changed_when: false
+  register: r_gnome_extension_list
+  failed_when:
+    - r_gnome_extension_list is not succeeded
+    - r_gnome_extension_list.rc != 2
 
 - name: Compare the list of enabled extensions
   ansible.builtin.shell: diff --ignore-all-space /tmp/before.txt /tmp/after.txt|awk '/[<>]/{print $2}'
