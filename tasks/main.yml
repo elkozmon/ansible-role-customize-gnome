@@ -82,6 +82,10 @@
     url: "{{ item.url }}"
     dest: "/tmp/{{ item.name }}.zip"
     mode: 0644
+  register: r_gnome_extension_download
+  retries: 5
+  delay: 3
+  until: r_gnome_extension_download is succeeded
   loop: "{{ gnome_extensions_full|default([]) }}"
   loop_control:
     label: "{{ item.name }}"
