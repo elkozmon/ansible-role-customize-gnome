@@ -124,9 +124,16 @@
     - unzipped_extension.changed
     - gnome_shell_restart_allowed | bool
 
+- name: Get gnome user info
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ gnome_user }}"
+
 - name: Enable extensions
   ansible.builtin.command: gnome-shell-extension-tool -e {{ item.name }}
   become_user: "{{ gnome_user }}"
+  environment:
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ getent_passwd[gnome_user][1] }}/bus"
   when: item.enable | default(false)
   loop: "{{ gnome_extensions_full | default([]) }}"
   loop_control:
@@ -140,6 +147,8 @@
 - name: Enable extensions with newer command
   ansible.builtin.command: gnome-extensions enable {{ item.item.name }}
   become_user: "{{ gnome_user }}"
+  environment:
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ getent_passwd[gnome_user][1] }}/bus"
   when:
     - item.item.enable | default(false)
     - "'gnome-shell-extension-tool is deprecated' in item.stderr"
@@ -183,6 +192,8 @@
   ansible.builtin.command:
     cmd: gsettings {{ ('--schemadir ' + item.schemadir) if 'schemadir' in item else '' }} set {{ item.schema }} {{ item.key }} {{ item.value }}
   become_user: "{{ gnome_user }}"
+  environment:
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ getent_passwd[gnome_user][1] }}/bus"
   changed_when: false
   loop: "{{ gnome_gsettings|default([]) }}"
   loop_control:
