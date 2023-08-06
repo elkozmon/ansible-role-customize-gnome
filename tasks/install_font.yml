@@ -23,14 +23,22 @@
   changed_when: false
 
 - name: Install font {{ gnome_font.name }}
-  ansible.builtin.copy:
-    src: "{{ item }}"
-    dest: /usr/local/share/fonts/
-    remote_src: true
-    mode: 0774
-  become: true
-  with_fileglob: "/tmp/{{ gnome_font.fonts|default([]) }}"
   when: not is_font_file
+  block:
+    - name: Find font files
+      ansible.builtin.find:
+        paths: /tmp
+        patterns: "{{ gnome_font.fonts }}"
+      register: r_gnome_fonts
+
+    - name: Copy fonts
+      ansible.builtin.copy:
+        src: "{{ item.path }}"
+        dest: /usr/local/share/fonts/
+        remote_src: true
+        mode: 0774
+      become: true
+      with_items: "{{ r_gnome_fonts.files }}"
 
 - name: Install font {{ gnome_font.name }}
   ansible.builtin.copy:
